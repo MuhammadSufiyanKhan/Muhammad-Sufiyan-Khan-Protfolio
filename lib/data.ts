@@ -10,8 +10,6 @@ export const profile = {
   about:
     "I'm a Computer Science graduate who loves turning ideas into polished products. I've worked across an internship, a product studio and a marketing agency, shipping real client work with React, Next.js, Node and MongoDB. I care about clean code, smooth motion and interfaces that feel alive.",
   socials: [
-    { label: "GitHub", href: "https://github.com/MuhammadSufiyanKhan" },
-    { label: "LinkedIn", href: "https://www.linkedin.com/" },
     { label: "Email", href: "mailto:mskhan05032@gmail.com" },
   ],
 };
@@ -47,7 +45,7 @@ export const projects = [
     id: "01",
     title: "Caviti",
     kind: "Web Platform",
-    desc: "A modern, responsive web platform with a clean UI and smooth user flows.",
+    desc: "A modern, responsive web platform designed around a clean interface and effortless user flows. Built and deployed as a fast, production-ready web app, with attention to layout, usability and performance across desktop and mobile.",
     href: "https://caviti-io-beta-sage.vercel.app/",
     tags: ["Next.js", "React", "UI/UX"],
     colors: ["#ff5a36", "#7a1fff"],
@@ -56,7 +54,7 @@ export const projects = [
     id: "02",
     title: "Specials Saver",
     kind: "Deals Web App",
-    desc: "A savings-focused web app that helps people discover and keep track of the best specials.",
+    desc: "A savings-focused web app that helps shoppers discover current specials and deals in one place instead of hunting across stores. Built with a full-stack approach: a responsive front end, an API behind it, and a simple, quick browsing experience.",
     href: "https://specials-saver-web.vercel.app/",
     tags: ["MERN", "REST API", "Responsive"],
     colors: ["#19e6a1", "#0a5cff"],
@@ -65,7 +63,7 @@ export const projects = [
     id: "03",
     title: "InterviewPrep AI",
     kind: "AI Assistant",
-    desc: "An AI-powered assistant that helps candidates prepare for interviews with tailored practice.",
+    desc: "An AI-powered assistant that helps candidates prepare for job interviews with tailored practice. It generates relevant questions and gives feedback on answers, so users can rehearse and build confidence before the real thing.",
     href: "https://interviewprep-assistant-ai.vercel.app/",
     tags: ["AI", "Next.js", "LLM"],
     colors: ["#ffd23f", "#ff2e93"],
