@@ -3,20 +3,31 @@ export const profile = {
   name: "Muhammad Sufiyan Khan",
   short: "Sufiyan",
   role: "Full-Stack Web Developer",
-  email: "mskhan05032@gmail.com",
+  email: "muhammadsufiyankhan2001@gmail.com",
   location: "Pakistan",
   intro:
     "I build fast, expressive web experiences — from pixel-perfect interfaces to the MERN-stack systems behind them.",
   about:
-    "I'm a Computer Science graduate who loves turning ideas into polished products. I've worked across an internship, a product studio and a marketing agency, shipping real client work with React, Next.js, Node and MongoDB. I care about clean code, smooth motion and interfaces that feel alive.",
+    "I'm a Computer Science graduate and full-stack developer who builds complete web products with the MERN stack — MongoDB, Express.js, React.js and Node.js — plus Next.js for fast, SEO-friendly front ends. I've worked across an internship, a product studio and a marketing agency, shipping real client work. I care about clean code, smooth motion and interfaces that feel alive.",
   socials: [
-    { label: "Email", href: "mailto:mskhan05032@gmail.com" },
+    { label: "Email", href: "mailto:muhammadsufiyankhan2001@gmail.com" },
   ],
 };
 
 export const education = {
   degree: "BS Computer Science",
-  note: "Foundations in algorithms, data structures, databases and software engineering.",
+  note:
+    "My degree gave me a solid grounding in how software really works — from the algorithms and data structures behind efficient code to the databases, networks and engineering practices behind reliable products. It is the foundation I build every web project on.",
+  points: [
+    "Problem solving and algorithmic thinking, applied to real features",
+    "Database design and querying — the base for my MongoDB and API work",
+    "Software engineering: planning, version control, testing and teamwork",
+    "Hands-on practice turning coursework ideas into deployed web apps",
+  ],
+  coursework: [
+    "Data Structures & Algorithms", "Object-Oriented Programming", "Database Systems",
+    "Web Engineering", "Operating Systems", "Computer Networks", "Software Engineering",
+  ],
 };
 
 export const experience = [
@@ -68,6 +79,11 @@ export const projects = [
     tags: ["AI", "Next.js", "LLM"],
     colors: ["#ffd23f", "#ff2e93"],
   },
+];
+
+export const stack = [
+  "MERN Stack", "React.js", "Node.js", "Express.js", "MongoDB", "Next.js", "TypeScript",
+  "JavaScript (ES6+)", "REST APIs", "Tailwind CSS", "GSAP", "Three.js", "Git & GitHub", "Vercel",
 ];
 
 export const skills = [

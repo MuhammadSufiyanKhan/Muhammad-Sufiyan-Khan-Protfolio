@@ -5,7 +5,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import Cursor from "./Cursor";
-import { profile, education, experience, projects, skills } from "@/lib/data";
+import { profile, education, experience, projects, skills, stack } from "@/lib/data";
 import { sceneState } from "@/lib/state";
 
 const Scene = dynamic(() => import("./Scene"), { ssr: false });
@@ -167,12 +167,17 @@ export default function Portfolio() {
               <p className="big">
                 {aboutWords.map((w, i) => (<span className="w" key={i}>{w} </span>))}
               </p>
+              <div className="stack" data-reveal>
+                <div className="eyebrow">Tech stack</div>
+                <div className="chips">{stack.map((t) => <em key={t}>{t}</em>)}</div>
+              </div>
               <div className="edu" data-reveal>
-                <div>
-                  <div className="eyebrow">Education</div>
-                  <h3>{education.degree}</h3>
-                  <p>{education.note}</p>
-                </div>
+                <div className="eyebrow">Education</div>
+                <h3>{education.degree}</h3>
+                <p>{education.note}</p>
+                <ul>{education.points.map((t) => <li key={t}>{t}</li>)}</ul>
+                <div className="eyebrow" style={{ marginTop: 28 }}>Core coursework</div>
+                <div className="chips">{education.coursework.map((t) => <em key={t}>{t}</em>)}</div>
               </div>
             </div>
           </div>

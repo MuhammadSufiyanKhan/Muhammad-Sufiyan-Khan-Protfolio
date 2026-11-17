@@ -3,35 +3,8 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { sceneState } from "@/lib/state";
 
-const vert = /* glsl */ `
-uniform float uTime; uniform float uProgress; uniform vec2 uMouse; uniform float uIntro; uniform float uPx;
-attribute float aRand; varying float vMix; varying float vAlpha;
-void main(){
-  vec3 p = position;
-  float n = sin(p.x*2.1+uTime*.7)+sin(p.y*2.7-uTime*.5)+sin(p.z*1.9+uTime*.6);
-  float disp = .10 + .10*uProgress;
-  p += normalize(p) * n * disp;
-  // intro: particles fly in from far away
-  p *= mix(3.2, 1.0, uIntro) ;
-  // mouse repulsion in view space
-  vec4 mv = modelViewMatrix * vec4(p,1.);
-  vec2 m = uMouse * vec2(2.4, 1.6);
-  float d = distance(mv.xy, m);
-  mv.xy += normalize(mv.xy - m + 1e-4) * smoothstep(1.3, 0., d) * .45;
-  gl_Position = projectionMatrix * mv;
-  gl_PointSize = (1.6 + aRand*2.2) * uPx * (3.2 / -mv.z);
-  vMix = clamp(p.y*.35+.5 + uProgress*.6, 0., 1.);
-  vAlpha = .35 + .65*aRand;
-}`;
-const frag = /* glsl */ `
-varying float vMix; varying float vAlpha;
-void main(){
-  vec2 c = gl_PointCoord - .5; float r = length(c); if(r>.5) discard;
-  vec3 a = vec3(1., .35, .21); vec3 b = vec3(.55, .45, 1.);
-  vec3 col = mix(a, b, vMix);
-  gl_FragColor = vec4(col, vAlpha * smoothstep(.5, .05, r));
-}`;
-
+// A calm cluster of floating, glossy geometric shapes that drift, react to the
+// mouse and spread apart as you scroll.
 export default function Scene() {
   const ref = useRef<HTMLCanvasElement>(null);
 
@@ -40,56 +13,43 @@ export default function Scene() {
     let renderer: THREE.WebGLRenderer;
     try {
       renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: "high-performance" });
-    } catch { return; } // no WebGL: page still works without the background
-    const px = Math.min(window.devicePixelRatio || 1, 1.75);
-    renderer.setPixelRatio(px);
+    } catch { return; }
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
     renderer.setClearColor(0x000000, 0);
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 50);
-    camera.position.z = 4;
+    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 50);
+    camera.position.z = 8;
 
+    scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+    const key = new THREE.DirectionalLight(0xffffff, 2.2); key.position.set(4, 5, 6); scene.add(key);
+    const rim = new THREE.PointLight(0xff5a36, 40, 20); rim.position.set(-5, -2, 3); scene.add(rim);
+    const fill = new THREE.PointLight(0x7a5cff, 40, 20); fill.position.set(5, -4, 2); scene.add(fill);
+
+    const mk = (color: number, rough: number, metal: number) =>
+      new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: metal });
+
+    const defs: { geo: THREE.BufferGeometry; mat: THREE.Material; pos: [number, number, number]; s: number; spread: [number, number, number] }[] = [
+      { geo: new THREE.TorusKnotGeometry(0.7, 0.24, 160, 24), mat: mk(0xf2f0ea, 0.25, 0.9), pos: [0, 0, 0], s: 1, spread: [0, 0, 0] },
+      { geo: new THREE.TorusGeometry(0.45, 0.14, 24, 64), mat: mk(0xff5a36, 0.35, 0.4), pos: [-2.2, 1.2, -1], s: 1, spread: [-3, 2, 0] },
+      { geo: new THREE.IcosahedronGeometry(0.5, 0), mat: mk(0x7a5cff, 0.3, 0.5), pos: [2.3, 1.5, -0.5], s: 1, spread: [3.5, 2.5, 0] },
+      { geo: new THREE.OctahedronGeometry(0.45, 0), mat: mk(0xf2f0ea, 0.2, 0.8), pos: [2.0, -1.6, 0.5], s: 1, spread: [3, -2.5, 0] },
+      { geo: new THREE.SphereGeometry(0.32, 32, 32), mat: mk(0xff5a36, 0.2, 0.2), pos: [-2.0, -1.5, 0.3], s: 1, spread: [-3.5, -2, 0] },
+    ];
     const group = new THREE.Group();
     scene.add(group);
-
-    // particle sphere
-    const COUNT = window.innerWidth < 700 ? 9000 : 22000;
-    const pos = new Float32Array(COUNT * 3);
-    const rand = new Float32Array(COUNT);
-    for (let i = 0; i < COUNT; i++) {
-      const phi = Math.acos(2 * Math.random() - 1);
-      const th = Math.random() * Math.PI * 2;
-      const r = 1.25 + (Math.random() - 0.5) * 0.08;
-      pos[i * 3] = r * Math.sin(phi) * Math.cos(th);
-      pos[i * 3 + 1] = r * Math.cos(phi);
-      pos[i * 3 + 2] = r * Math.sin(phi) * Math.sin(th);
-      rand[i] = Math.random();
-    }
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-    geo.setAttribute("aRand", new THREE.BufferAttribute(rand, 1));
-    const mat = new THREE.ShaderMaterial({
-      vertexShader: vert, fragmentShader: frag, transparent: true, depthWrite: false,
-      blending: THREE.AdditiveBlending,
-      uniforms: {
-        uTime: { value: 0 }, uProgress: { value: 0 }, uIntro: { value: 0 },
-        uMouse: { value: new THREE.Vector2() }, uPx: { value: px * 1.6 },
-      },
+    const meshes = defs.map((d) => {
+      const m = new THREE.Mesh(d.geo, d.mat);
+      m.position.set(...d.pos);
+      group.add(m);
+      return m;
     });
-    const points = new THREE.Points(geo, mat);
-    group.add(points);
-
-    // inner wireframe core
-    const coreGeo = new THREE.IcosahedronGeometry(0.62, 1);
-    const coreMat = new THREE.MeshBasicMaterial({ color: 0xf2f0ea, wireframe: true, transparent: true, opacity: 0.14 });
-    const core = new THREE.Mesh(coreGeo, coreMat);
-    group.add(core);
 
     const resize = () => {
       const w = window.innerWidth, h = window.innerHeight;
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
-      camera.position.z = w / h < 0.8 ? 5.4 : 4;
+      camera.position.z = w / h < 0.8 ? 11 : 8;
       camera.updateProjectionMatrix();
     };
     resize();
@@ -112,22 +72,30 @@ export default function Scene() {
       if (!visible) return;
       raf = requestAnimationFrame(loop);
       const t = reduce ? 0 : clock.getElapsedTime();
-      mouse.x += (sceneState.mx - mouse.x) * 0.06;
-      mouse.y += (sceneState.my - mouse.y) * 0.06;
+      mouse.x += (sceneState.mx - mouse.x) * 0.05;
+      mouse.y += (sceneState.my - mouse.y) * 0.05;
       const p = sceneState.progress;
-      mat.uniforms.uTime.value = t;
-      mat.uniforms.uProgress.value = p;
-      mat.uniforms.uIntro.value = sceneState.intro;
-      mat.uniforms.uMouse.value.copy(mouse);
-      group.rotation.y = t * 0.08 + mouse.x * 0.35 + p * Math.PI * 2;
-      group.rotation.x = mouse.y * 0.2 + p * 0.8;
-      core.rotation.y = -t * 0.2;
-      // drift sphere to the right on desktop and shrink as you scroll
+      const intro = sceneState.intro;
       const wide = camera.aspect > 1;
-      group.position.x = wide ? 1.1 - p * 2.2 : 0;
-      group.position.y = wide ? 0 : 0.6;
-      group.scale.setScalar(1 - p * 0.25);
-      canvas.style.opacity = String(Math.max(0.28, 1 - p * 4));
+
+      group.position.x = wide ? 2.4 - p * 4 : 0;
+      group.position.y = wide ? 0 : 1.6;
+      group.rotation.y = mouse.x * 0.4 + p * 2;
+      group.rotation.x = -mouse.y * 0.25;
+      group.scale.setScalar((0.55 + intro * 0.45) * (wide ? 1 : 0.7));
+
+      meshes.forEach((m, i) => {
+        const d = defs[i];
+        const k = p * 1.5;
+        m.position.set(
+          d.pos[0] + d.spread[0] * k,
+          d.pos[1] + d.spread[1] * k + Math.sin(t * 0.8 + i * 1.7) * 0.18,
+          d.pos[2],
+        );
+        m.rotation.x = t * (0.25 + i * 0.07) + i;
+        m.rotation.y = t * (0.35 + i * 0.05);
+      });
+      canvas.style.opacity = String(Math.max(0.25, 1 - p * 3.5) * Math.min(1, intro * 1.5));
       renderer.render(scene, camera);
     };
     loop();
@@ -138,7 +106,8 @@ export default function Scene() {
       window.removeEventListener("resize", resize);
       window.removeEventListener("pointermove", onMove);
       document.removeEventListener("visibilitychange", onVis);
-      geo.dispose(); mat.dispose(); coreGeo.dispose(); coreMat.dispose(); renderer.dispose();
+      defs.forEach((d) => { d.geo.dispose(); d.mat.dispose(); });
+      renderer.dispose();
     };
   }, []);
 
