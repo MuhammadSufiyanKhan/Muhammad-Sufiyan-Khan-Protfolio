@@ -221,13 +221,14 @@ export default function Scene() {
     const loop = () => {
       if (!visible) return;
       raf = requestAnimationFrame(loop);
+      if (window.scrollY > window.innerHeight * 1.3) return; // hero is covered: skip rendering
       const tm = reduce ? 0 : clock.getElapsedTime();
       mouse.x += (sceneState.mx - mouse.x) * 0.05;
       mouse.y += (sceneState.my - mouse.y) * 0.05;
       const p = sceneState.progress, intro = sceneState.intro;
       const wide = camera.aspect > 1;
 
-      group.position.x = wide ? 2.5 - p * 4.2 : -0.45;
+      group.position.x = wide ? 1.7 - p * 3 : -0.45;
       group.position.y = wide ? 0 : 2.3;
       group.rotation.y = mouse.x * 0.3 + p * 0.9;
       group.rotation.x = -mouse.y * 0.18;
@@ -242,7 +243,7 @@ export default function Scene() {
         );
         it.mesh.rotation.set(it.rot.x + Math.sin(tm * 0.4 + i) * 0.02, it.rot.y + Math.cos(tm * 0.35 + i) * 0.03, it.rot.z + (it.glyph ? Math.sin(tm * 0.5 + i) * 0.12 : 0));
       });
-      canvas.style.opacity = String(Math.max(0.13, 1 - p * 3.5) * Math.min(1, intro * 1.5));
+      canvas.style.opacity = String(0.38 * Math.max(0.3, 1 - p * 3.5) * Math.min(1, intro * 1.5));
       renderer.render(scene, camera);
     };
     loop();

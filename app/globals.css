@@ -1,13 +1,14 @@
 @import "tailwindcss";
 
 /* Colour schemes: switch with <html data-theme="paper|ink|clay"> */
-:root, :root[data-theme="paper"] {
+/* default = sand (warm near-black + cream) */
+:root, :root[data-theme="sand"] {
+  --c-bg: #11100c; --c-fg: #d9cdb0; --c-muted: #8d8570;
+  --c-line: rgb(217 205 176 / 0.14); --c-accent: #efe4c5;
+}
+:root[data-theme="paper"] {
   --c-bg: #ece8df; --c-fg: #121212; --c-muted: #6b6862;
   --c-line: rgb(18 18 18 / 0.16); --c-accent: #2f3bff;
-}
-:root[data-theme="ink"] {
-  --c-bg: #0b0b0c; --c-fg: #f1efe8; --c-muted: #8b8b90;
-  --c-line: rgb(241 239 232 / 0.12); --c-accent: #c8ff3d;
 }
 :root[data-theme="clay"] {
   --c-bg: #e8502a; --c-fg: #140c09; --c-muted: #4f1f12;
@@ -24,7 +25,7 @@
 
 @theme {
   --font-display: var(--nf-display), ui-sans-serif, sans-serif;
-  --font-sans: var(--nf-body), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--nf-display), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--nf-mono), ui-monospace, SFMono-Regular, monospace;
   --animate-grain: grain 1s steps(6) infinite;
   --animate-drip: drip 2s ease-in-out infinite;
@@ -44,7 +45,7 @@
   }
 }
 
-:root { --pad: clamp(20px, 4vw, 56px); }
+:root { --pad: clamp(20px, 7vw, 130px); }
 
 @layer base {
   html { background: var(--c-bg); overflow-x: clip; }
@@ -55,11 +56,12 @@
 }
 
 @utility eyebrow {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.16em;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--c-muted);
+  color: var(--c-fg);
 }
 @utility text-outline {
   color: transparent;

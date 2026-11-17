@@ -1,9 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Syne, Inter, JetBrains_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const display = Syne({ subsets: ["latin"], variable: "--nf-display", weight: ["500", "700", "800"] });
-const body = Inter({ subsets: ["latin"], variable: "--nf-body" });
+const display = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--nf-display", weight: ["400", "500", "600", "700", "800"] });
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--nf-mono", weight: ["400", "500"] });
 
 export const metadata: Metadata = {
@@ -16,11 +15,11 @@ export const metadata: Metadata = {
     type: "website",
   },
 };
-export const viewport: Viewport = { themeColor: "#0a0a0b" };
+export const viewport: Viewport = { themeColor: "#11100c" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-theme="paper" suppressHydrationWarning className={`${display.variable} ${body.variable} ${mono.variable}`}>
+    <html lang="en" data-theme="sand" suppressHydrationWarning className={`${display.variable} ${mono.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}` }} />
       </head>

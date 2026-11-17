@@ -5,7 +5,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import Cursor from "./Cursor";
-import { profile, education, experience, projects, skills, stack } from "@/lib/data";
+import { profile, education, experience, projects, stack } from "@/lib/data";
 import { sceneState } from "@/lib/state";
 
 const Scene = dynamic(() => import("./Scene"), { ssr: false });
@@ -13,25 +13,51 @@ gsap.registerPlugin(ScrollTrigger);
 
 const useIso = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
-// shared class fragments
-const section = "px-(--pad) py-[clamp(80px,14vw,180px)]";
-const maskOuter = "block overflow-hidden";
-const maskInner = "inline-block will-change-transform";
-const h2 = "font-display font-extrabold uppercase leading-[.92] tracking-[-0.03em] text-[clamp(32px,9vw,140px)]";
-const chip = "rounded-full border border-line bg-bg/50 px-3.5 py-2 font-mono text-xs backdrop-blur-sm";
-const ease = "ease-[cubic-bezier(.7,0,.2,1)]";
 const themes = [
+  { id: "sand", label: "Sand", bg: "#11100c", ac: "#d9cdb0" },
   { id: "paper", label: "Paper", bg: "#ece8df", ac: "#2f3bff" },
-  { id: "ink", label: "Ink", bg: "#0b0b0c", ac: "#c8ff3d" },
   { id: "clay", label: "Clay", bg: "#e8502a", ac: "#f6ecd2" },
 ] as const;
+
+const ease = "ease-[cubic-bezier(.7,0,.2,1)]";
+const display = "font-display font-semibold tracking-[-0.045em]";
+const chip = "rounded-md border border-line px-3 py-2 text-xs font-semibold tracking-wide uppercase";
+const sectionPad = "px-(--pad) py-[clamp(80px,12vw,170px)]";
+const cols = "grid gap-8 md:grid-cols-[1fr_2.6fr]";
+
+function Stat({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="relative mx-[.1em] inline-block h-[clamp(30px,7.4vw,136px)] w-[clamp(34px,8.6vw,158px)] rounded-lg border border-line bg-linear-to-b from-fg/10 to-transparent p-[10px] align-middle text-[11px] leading-tight font-bold tracking-normal whitespace-normal text-fg/90 sm:text-xs">
+      {children}
+    </span>
+  );
+}
+const Arrow = () => (
+  <svg viewBox="0 0 24 24" className="inline-block size-[.72em] align-middle" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true">
+    <path d="M12 3v17M5 13l7 7 7-7" />
+  </svg>
+);
+
+// Placeholder "UI" card for each project (swap for real screenshots any time)
+function Mock({ p, className = "" }: { p: (typeof projects)[number]; className?: string }) {
+  return (
+    <div className={`relative overflow-hidden rounded-md ${className}`} style={{ background: `linear-gradient(135deg, ${p.colors[0]}, ${p.colors[1]})` }}>
+      <div className="absolute inset-[7%] flex flex-col gap-[6%] rounded-md bg-black/55 p-[5%] backdrop-blur-sm">
+        <div className="flex gap-1.5">{[0, 1, 2].map((i) => <i key={i} className="size-1.5 rounded-full bg-white/50" />)}</div>
+        <b className="font-display text-[clamp(16px,2vw,28px)] leading-none font-semibold tracking-[-0.04em] text-white">{p.title}</b>
+        <i className="h-1.5 w-3/4 rounded bg-white/30" /><i className="h-1.5 w-1/2 rounded bg-white/20" />
+        <div className="mt-auto grid grid-cols-3 gap-[4%]">{[0, 1, 2].map((i) => <i key={i} className="aspect-[4/3] rounded bg-white/15" />)}</div>
+      </div>
+    </div>
+  );
+}
 
 export default function Portfolio() {
   const root = useRef<HTMLDivElement>(null);
   const preview = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
   const [count, setCount] = useState(0);
-  const [theme, setTheme] = useState<string>("paper");
+  const [theme, setTheme] = useState<string>("sand");
 
   useEffect(() => {
     try { const t = localStorage.getItem("theme"); if (t && themes.some((x) => x.id === t)) setTheme(t); } catch {}
@@ -55,20 +81,19 @@ export default function Portfolio() {
     lenis.stop();
 
     const ctx = gsap.context(() => {
-      gsap.set("[data-hero-word]", { yPercent: 115 });
-      gsap.set("[data-hero-meta] > *", { y: 30, opacity: 0 });
-      gsap.set("[data-nav] > *", { y: -20, opacity: 0 });
+      gsap.set("[data-hero-line]", { yPercent: 110 });
+      gsap.set("[data-fade]", { opacity: 0 });
 
       const c = { v: 0 };
       const intro = gsap.timeline({ defaults: { ease: "power3.out" } });
       intro
-        .to(c, { v: 100, duration: reduce ? 0.2 : 1.8, ease: "power2.inOut", onUpdate: () => setCount(Math.round(c.v)) })
-        .fromTo("[data-bar]", { scaleX: 0 }, { scaleX: 1, duration: reduce ? 0.2 : 1.8, ease: "power2.inOut" }, 0)
+        .to(c, { v: 100, duration: reduce ? 0.2 : 1.6, ease: "power2.inOut", onUpdate: () => setCount(Math.round(c.v)) })
+        .fromTo("[data-bar]", { scaleX: 0 }, { scaleX: 1, duration: reduce ? 0.2 : 1.6, ease: "power2.inOut" }, 0)
         .to("[data-loader]", { yPercent: -100, duration: 1, ease: "expo.inOut" })
         .add(() => lenis.start(), "<0.6")
         .to(sceneState, { intro: 1, duration: 2.4, ease: "expo.out" }, "<")
-        .to("[data-hero-word]", { yPercent: 0, duration: 1.2, stagger: 0.1, ease: "expo.out" }, "<0.25")
-        .to("[data-hero-meta] > *, [data-nav] > *", { y: 0, opacity: 1, duration: 1, stagger: 0.08 }, "<0.5")
+        .to("[data-hero-line]", { yPercent: 0, duration: 1.3, stagger: 0.12, ease: "expo.out" }, "<0.2")
+        .to("[data-fade]", { opacity: 1, duration: 1, stagger: 0.08 }, "<0.6")
         .set("[data-loader]", { display: "none" });
 
       ScrollTrigger.create({
@@ -76,29 +101,35 @@ export default function Portfolio() {
         onUpdate: (s) => { sceneState.progress = s.progress; },
       });
 
-      gsap.to("[data-hero-title]", { yPercent: -18, ease: "none", scrollTrigger: { trigger: "[data-hero]", start: "top top", end: "bottom top", scrub: true } });
-
-      const loop = gsap.to("[data-track]", { xPercent: -50, duration: 28, ease: "none", repeat: -1 });
-      ScrollTrigger.create({
-        trigger: "[data-marquee]", start: "top bottom", end: "bottom top",
-        onUpdate: (s) => { gsap.to(loop, { timeScale: 1 + Math.min(Math.abs(s.getVelocity()) / 400, 6) * s.direction, duration: 0.2, overwrite: true }); },
+      // hero stays pinned (sticky) and recedes while the next section slides over it
+      gsap.to("[data-hero-inner]", {
+        scale: 0.92, opacity: 0.3, ease: "none",
+        scrollTrigger: { trigger: "[data-cover]", start: "top bottom", end: "top top", scrub: true },
       });
 
-      gsap.to("[data-word]", {
-        opacity: 1, stagger: 0.12, ease: "none",
-        scrollTrigger: { trigger: "[data-about-text]", start: "top 80%", end: "bottom 45%", scrub: true },
+      // word-by-word reveal on big statements
+      gsap.utils.toArray<HTMLElement>("[data-scrub]").forEach((el) => {
+        gsap.to(el.querySelectorAll("[data-word]"), {
+          opacity: 1, stagger: 0.12, ease: "none",
+          scrollTrigger: { trigger: el, start: "top 80%", end: "bottom 45%", scrub: true },
+        });
+      });
+
+      // floating project cards drift at different speeds
+      gsap.utils.toArray<HTMLElement>("[data-float]").forEach((el) => {
+        const sp = Number(el.dataset.speed || 1);
+        gsap.fromTo(el, { y: 140 * sp }, { y: -140 * sp, ease: "none", scrollTrigger: { trigger: "[data-statement]", start: "top bottom", end: "bottom top", scrub: true } });
       });
 
       gsap.utils.toArray<HTMLElement>("[data-reveal]").forEach((el) => {
-        gsap.from(el, { y: 60, opacity: 0, duration: 1.1, ease: "expo.out", scrollTrigger: { trigger: el, start: "top 88%" } });
+        gsap.from(el, { y: 50, opacity: 0, duration: 1.1, ease: "expo.out", scrollTrigger: { trigger: el, start: "top 90%" } });
       });
-      gsap.utils.toArray<HTMLElement>("[data-head-word]").forEach((el) => {
-        gsap.from(el, { yPercent: 115, duration: 1.2, ease: "expo.out", scrollTrigger: { trigger: el, start: "top 90%" } });
+      gsap.utils.toArray<HTMLElement>("[data-head-line]").forEach((el) => {
+        gsap.from(el, { yPercent: 110, duration: 1.2, ease: "expo.out", scrollTrigger: { trigger: el, start: "top 92%" } });
       });
       gsap.utils.toArray<HTMLElement>("[data-row]").forEach((el) => {
-        gsap.from(el, { y: 50, opacity: 0, duration: 1, ease: "expo.out", scrollTrigger: { trigger: el, start: "top 90%" } });
+        gsap.from(el, { y: 40, opacity: 0, duration: 1, ease: "expo.out", scrollTrigger: { trigger: el, start: "top 92%" } });
       });
-      gsap.from("[data-mail]", { yPercent: 40, opacity: 0, duration: 1.2, ease: "expo.out", scrollTrigger: { trigger: "[data-contact]", start: "top 60%" } });
     }, root);
 
     return () => {
@@ -122,37 +153,46 @@ export default function Portfolio() {
   }, []);
   const showPreview = (i: number | null) => {
     if (i !== null) setActive(i);
-    gsap.to(preview.current, { opacity: i === null ? 0 : 1, scale: i === null ? 0.6 : 1, rotate: i === null ? 0 : -4, duration: 0.5, ease: "power3.out", overwrite: "auto" });
+    gsap.to(preview.current, { opacity: i === null ? 0 : 1, scale: i === null ? 0.6 : 1, rotate: i === null ? 0 : -3, duration: 0.5, ease: "power3.out", overwrite: "auto" });
   };
 
-  const aboutWords = profile.about.split(" ");
-  const heroWords = ["Muhammad", "Sufiyan", "Khan"];
+  const words = (text: string, cls = "opacity-[.16]") =>
+    text.split(" ").map((w, i) => <span data-word className={cls} key={i}>{w} </span>);
+  const mask = "block overflow-hidden py-[.03em]";
+  const maskIn = "inline-block will-change-transform";
 
   return (
     <div ref={root}>
       <Scene />
       <Cursor />
-      <div aria-hidden="true" className="grain-bg animate-grain pointer-events-none fixed -inset-1/2 z-50 opacity-[.07]" />
 
+      {/* loader */}
       <div data-loader role="status" aria-label="Loading" className="fixed inset-0 z-100 flex items-end justify-between bg-bg p-(--pad)">
-        <span className="eyebrow">// portfolio — {new Date().getFullYear()}</span>
-        <span className="font-display text-[clamp(80px,22vw,300px)] leading-[.92] tracking-[-0.03em]">{String(count).padStart(2, "0")}</span>
-        <div data-bar className="absolute bottom-0 left-0 h-[3px] w-full origin-left bg-accent" />
+        <span className="eyebrow">[ Portfolio {new Date().getFullYear()} ]</span>
+        <span className={`${display} text-[clamp(80px,22vw,300px)] leading-[.9]`}>{String(count).padStart(2, "0")}</span>
+        <div data-bar className="absolute bottom-0 left-0 h-[3px] w-full origin-left bg-fg" />
       </div>
 
-      <header data-nav className="fixed inset-x-0 top-0 z-60 flex items-center justify-between bg-linear-to-b from-bg via-bg/85 to-transparent px-(--pad) pt-[22px] pb-8">
-        <a href="#top" data-cursor className="font-display text-lg font-extrabold">MSK.</a>
-        <ul className="flex gap-3 text-xs sm:gap-7 sm:text-sm">
-          {[["About", "#about"], ["Work", "#work"], ["Experience", "#experience"], ["Contact", "#contact"]].map(([l, h]) => (
-            <li key={l}>
-              <a href={h} className={`relative after:absolute after:-bottom-1 after:left-0 after:h-px after:w-full after:origin-right after:scale-x-0 after:bg-current after:transition-transform after:duration-500 ${ease} hover:after:origin-left hover:after:scale-x-100`}>{l}</a>
-            </li>
-          ))}
-        </ul>
-        <span className="hidden text-[13px] sm:inline">{profile.location}</span>
+      {/* top bar */}
+      <header data-fade className="fixed inset-x-0 top-0 z-60 flex items-start justify-between px-(--pad) pt-6 pb-10 bg-linear-to-b from-bg/80 to-transparent">
+        <a href="#top" data-cursor aria-label="Home" className="text-[13px] leading-[1.15] font-semibold tracking-[.32em] uppercase">
+          Muhammad<br />Suf<i className="mx-[.04em] inline-block size-[.62em] bg-fg align-baseline" />yan
+        </a>
+        <a href={`mailto:${profile.email}`} className="hidden pt-0.5 text-sm text-fg/90 transition-opacity hover:opacity-60 sm:block">{profile.email}</a>
       </header>
 
-      <div className="fixed bottom-4 left-(--pad) z-60 flex items-center gap-2 rounded-full border border-line bg-bg/70 px-2.5 py-2 backdrop-blur-md" role="group" aria-label="Colour scheme">
+      {/* floating pill nav */}
+      <nav data-fade aria-label="Primary" className="fixed inset-x-0 bottom-5 z-60 mx-auto flex w-max max-w-[calc(100vw-24px)] items-center gap-0.5 rounded-xl border border-line bg-bg/80 p-1.5 backdrop-blur-md">
+        {[["Projects", "#work"], ["About", "#about"], ["Experience", "#experience"]].map(([l, h]) => (
+          <a key={l} href={h} className={`${l === "Experience" ? "hidden sm:block" : ""} rounded-lg px-2.5 py-2.5 text-[11px] font-semibold tracking-wide uppercase transition-colors hover:bg-fg/10 sm:px-4 sm:text-xs`}>{l}</a>
+        ))}
+        <a href="#contact" data-cursor className="ml-1 flex items-center gap-2 whitespace-nowrap rounded-lg bg-fg py-1.5 pr-3 pl-1.5 text-[11px] font-bold tracking-wide text-bg uppercase sm:pr-4 sm:text-xs">
+          <span className="grid size-7 place-items-center rounded-md bg-bg text-[10px] font-bold text-fg">MS</span>Let&apos;s talk
+        </a>
+      </nav>
+
+      {/* colour scheme switch */}
+      <div data-fade className="fixed bottom-5 left-(--pad) z-60 hidden items-center gap-2 rounded-full border border-line bg-bg/70 px-2.5 py-2 backdrop-blur-md md:flex" role="group" aria-label="Colour scheme">
         {themes.map((t) => (
           <button key={t.id} type="button" onClick={() => setTheme(t.id)} aria-label={`${t.label} colour scheme`} aria-pressed={theme === t.id} title={t.label} data-cursor
             className={`size-5 cursor-pointer rounded-full border border-line transition-transform duration-300 hover:scale-110 ${theme === t.id ? "ring-2 ring-fg ring-offset-2 ring-offset-bg" : ""}`}
@@ -161,118 +201,151 @@ export default function Portfolio() {
       </div>
 
       <main id="top" className="relative z-[2]">
-        <section data-hero className="flex min-h-svh flex-col justify-end px-(--pad) pt-32 pb-[clamp(40px,6vw,80px)]">
-          <div className="eyebrow mb-6">// {profile.role} — available for work</div>
-          <h1 data-hero-title aria-label={profile.name} className="font-display text-[clamp(30px,8vw,160px)] leading-none font-extrabold tracking-[-0.03em] uppercase">
-            {heroWords.map((w, i) => (
-              <span className={maskOuter} key={w}><span data-hero-word className={`${maskInner} ${i === 1 ? "text-outline" : ""}`}>{w}</span></span>
-            ))}
-          </h1>
-          <div data-hero-meta className="mt-9 flex flex-wrap items-end justify-between gap-6">
-            <p className="max-w-[460px] text-[clamp(15px,1.4vw,18px)] leading-relaxed text-muted">{profile.intro}</p>
-            <div className="eyebrow flex items-center gap-2.5"><i className="animate-drip block h-[46px] w-px bg-fg" /> Scroll</div>
+        {/* HERO — sticky; the rest of the page slides over it */}
+        <section data-hero className="sticky top-0 flex h-svh flex-col justify-end overflow-hidden px-(--pad) pb-36 sm:justify-center sm:pb-0">
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_45%,transparent_25%,var(--c-bg)_100%)]" />
+          <div data-hero-inner className="relative will-change-transform">
+            <h1 className="sr-only">{profile.name} — Full-Stack &amp; MERN Web Developer</h1>
+            <div aria-hidden="true" className={`${display} text-[clamp(38px,9.4vw,172px)] leading-[.92] uppercase`}>
+              <span className={mask}>
+                <span data-hero-line className={maskIn}>Full-Stack<Stat>{experience.length}<span className="hidden sm:inline"> roles shipped</span></Stat>&amp;</span>
+              </span>
+              <span className={mask}>
+                <span data-hero-line className="flex items-end justify-between gap-6">
+                  <span data-fade className="mb-[.3em] hidden max-w-[270px] text-[clamp(14px,1.15vw,18px)] leading-snug font-medium tracking-normal normal-case text-fg/90 md:block">
+                    Hey, I&apos;m {profile.short}. I build full-stack web apps that are fast, scalable and a pleasure to use.
+                  </span>
+                  <span className="ml-auto">MERN Web</span>
+                </span>
+              </span>
+              <span className={mask}>
+                <span data-hero-line className={maskIn}>Developer<Stat>{projects.length}<span className="hidden sm:inline"> live projects</span></Stat><Arrow /></span>
+              </span>
+            </div>
+            <p data-fade className="mt-6 max-w-[320px] text-[15px] leading-snug font-medium text-fg/90 md:hidden">
+              Hey, I&apos;m {profile.short}. I build full-stack web apps that are fast, scalable and a pleasure to use.
+            </p>
+          </div>
+          <div data-fade className="absolute inset-x-(--pad) bottom-7 hidden items-end justify-between text-sm text-fg/80 sm:flex">
+            <span>Code by code</span><span>Scroll</span>
           </div>
         </section>
 
-        <div data-marquee aria-hidden="true" className="relative z-[2] overflow-hidden border-y border-line bg-bg/60 py-[22px] backdrop-blur-sm">
-          <div data-track className="flex w-max will-change-transform">
-            {[0, 1].map((k) => (
-              <div key={k} className="flex">
-                {skills.map((s) => (
-                  <span key={s + k} className="font-display pr-12 text-[clamp(28px,4.5vw,64px)] font-bold whitespace-nowrap">{s}<b className="ml-12 font-normal text-accent">✦</b></span>
-                ))}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <section id="about" className={section}>
-          <div className="grid gap-10 md:grid-cols-[1fr_2fr]">
-            <div className="eyebrow" data-reveal>// 01 — about</div>
-            <div>
-              <p data-about-text className="font-display text-[clamp(22px,2.7vw,40px)] leading-[1.15] font-medium tracking-[-0.02em]">
-                {aboutWords.map((w, i) => (<span data-word className="opacity-[.18]" key={i}>{w} </span>))}
-              </p>
-              <div data-reveal className="mt-12">
-                <div className="eyebrow">// tech stack</div>
-                <div className="mt-4 flex flex-wrap gap-2.5">{stack.map((t) => <em key={t} className={`${chip} not-italic`}>{t}</em>)}</div>
-              </div>
-              <div data-reveal className="mt-14 max-w-[760px] border-t border-line pt-7">
-                <div className="eyebrow">// education</div>
-                <h3 className="font-display mt-2.5 text-[clamp(26px,3vw,40px)] tracking-[-0.02em]">{education.degree}</h3>
-                <p className="mt-3.5 leading-[1.7] text-muted">{education.note}</p>
-                <ul className="mt-4 list-disc pl-[18px] leading-[1.8] text-muted marker:text-accent">
-                  {education.points.map((t) => <li key={t}>{t}</li>)}
-                </ul>
-                <div className="eyebrow mt-7">// core coursework</div>
-                <div className="mt-4 flex flex-wrap gap-2.5">{education.coursework.map((t) => <em key={t} className={`${chip} not-italic`}>{t}</em>)}</div>
+        {/* everything below slides over the hero */}
+        <div data-cover className="relative z-10 bg-bg">
+          {/* statement + floating project cards */}
+          <section data-statement className="relative overflow-hidden px-(--pad) pt-[clamp(100px,16vw,230px)] pb-[clamp(320px,42vw,680px)]">
+            <div className={cols}>
+              <div className="eyebrow" data-reveal>[ What I do ]</div>
+              <div>
+                <p data-scrub className={`${display} text-[clamp(30px,5.1vw,88px)] leading-[.98]`}>
+                  {words("Full-stack web apps and polished interfaces, built with the MERN stack for teams that care about every detail.")}
+                </p>
+                <p data-reveal className="mt-8 text-[15px] text-muted">React · Node.js · Express · MongoDB · Next.js</p>
               </div>
             </div>
-          </div>
-        </section>
+            {projects.map((p, i) => {
+              const pos = [
+                "left-[calc(var(--pad)-3vw)] top-[56%] w-[clamp(240px,27vw,400px)]",
+                "right-[var(--pad)] top-[36%] w-[clamp(220px,25vw,380px)]",
+                "left-[36%] top-[72%] w-[clamp(220px,26vw,390px)]",
+              ][i] ?? "";
+              return (
+                <a key={p.id} data-float data-speed={[0.9, 1.3, 0.6][i] ?? 1} data-cursor href={p.href} target="_blank" rel="noopener noreferrer"
+                  aria-label={`${p.title} — open live site`} className={`absolute z-10 hidden md:block ${pos}`}>
+                  <Mock p={p} className="aspect-[4/3] w-full shadow-2xl shadow-black/40" />
+                </a>
+              );
+            })}
+          </section>
 
-        <section id="work" className={section}>
-          <div className="mb-12 flex items-end justify-between">
-            <h2 className={h2}><span className={maskOuter}><span data-head-word className={maskInner}>Selected Work</span></span></h2>
-            <span className="eyebrow">({String(projects.length).padStart(2, "0")})</span>
-          </div>
-          <div className="group/list">
-            {projects.map((p, i) => (
-              <a key={p.id} href={p.href} target="_blank" rel="noopener noreferrer" data-row data-cursor
-                onMouseEnter={() => showPreview(i)} onMouseLeave={() => showPreview(null)}
-                className={`group relative grid grid-cols-1 gap-3 border-t border-line py-[34px] transition-colors duration-300 last:border-b md:grid-cols-[70px_minmax(0,1fr)_minmax(0,1.1fr)_40px] md:items-center md:gap-5 group-hover/list:[&:not(:hover)]:text-muted`}>
-                <span className="font-mono text-sm text-muted">{p.id}</span>
-                <h3 className={`font-display text-[clamp(28px,4vw,64px)] leading-none font-extrabold tracking-[-0.03em] transition-transform duration-500 ${ease} group-hover:translate-x-4`}>{p.title}</h3>
-                <div className="text-sm leading-relaxed text-muted">
-                  {p.kind} — {p.desc}
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {p.tags.map((t) => <em key={t} className="rounded-full border border-line px-2.5 py-1 font-mono text-[11px] text-fg not-italic">{t}</em>)}
-                  </div>
+          {/* about */}
+          <section id="about" className={sectionPad}>
+            <div className={cols}>
+              <div className="eyebrow" data-reveal>[ About ]</div>
+              <div>
+                <p data-scrub className={`${display} text-[clamp(22px,2.8vw,44px)] leading-[1.1]`}>{words(profile.about)}</p>
+                <div data-reveal className="mt-12">
+                  <div className="eyebrow">[ Tech stack ]</div>
+                  <div className="mt-4 flex flex-wrap gap-2.5">{stack.map((t) => <span key={t} className={chip}>{t}</span>)}</div>
                 </div>
-                <span aria-hidden="true" className="hidden text-[28px] transition-transform duration-300 group-hover:-translate-y-1.5 group-hover:translate-x-1.5 group-hover:text-accent md:block">↗</span>
-              </a>
-            ))}
-          </div>
-        </section>
-
-        <section id="experience" className={section}>
-          <div className="mb-12 flex items-end justify-between">
-            <h2 className={h2}><span className={maskOuter}><span data-head-word className={maskInner}>Experience</span></span></h2>
-            <span className="eyebrow">( 03 )</span>
-          </div>
-          {experience.map((e) => (
-            <div data-row key={e.company} className="grid gap-2.5 border-t border-line py-9 last:border-b md:grid-cols-[200px_1fr_1.2fr] md:items-baseline md:gap-6">
-              <span className="font-mono text-[13px] tracking-[.14em] text-accent uppercase">{e.period}</span>
-              <h3 className="font-display text-[clamp(24px,3vw,40px)] tracking-[-0.02em]">{e.role}<small className="mt-2 block font-sans text-[15px] tracking-normal text-muted">{e.company}</small></h3>
-              <p className="leading-relaxed text-muted">{e.text}</p>
+                <div data-reveal className="mt-14 max-w-[760px] border-t border-line pt-7">
+                  <div className="eyebrow">[ Education ]</div>
+                  <h3 className={`${display} mt-3 text-[clamp(26px,3vw,44px)]`}>{education.degree}</h3>
+                  <p className="mt-3.5 leading-[1.7] text-muted">{education.note}</p>
+                  <ul className="mt-4 list-disc pl-[18px] leading-[1.8] text-muted marker:text-fg">
+                    {education.points.map((t) => <li key={t}>{t}</li>)}
+                  </ul>
+                  <div className="eyebrow mt-7">[ Core coursework ]</div>
+                  <div className="mt-4 flex flex-wrap gap-2.5">{education.coursework.map((t) => <span key={t} className={chip}>{t}</span>)}</div>
+                </div>
+              </div>
             </div>
-          ))}
-        </section>
+          </section>
 
-        <section id="contact" data-contact className={`${section} flex min-h-[90svh] flex-col justify-between`}>
-          <div className="eyebrow" data-reveal>// 04 — contact</div>
-          <div>
-            <p className="eyebrow mb-5" data-reveal>Have a project in mind? Let&apos;s talk.</p>
-            <a data-mail data-cursor href={`mailto:${profile.email}`} className="font-display inline-block text-[clamp(22px,4.6vw,80px)] leading-none font-extrabold tracking-[-0.04em] break-all transition-colors duration-300 hover:text-accent">{profile.email}</a>
-          </div>
-          <div data-reveal className="flex flex-wrap gap-7">
-            {profile.socials.map((s) => (
-              <a key={s.label} href={s.href} className="border-b border-line pb-1 transition-colors duration-300 hover:border-accent hover:text-accent">{s.label} ↗</a>
+          {/* work */}
+          <section id="work" className={sectionPad}>
+            <div className="mb-10 flex items-end justify-between">
+              <h2 className={`${display} text-[clamp(40px,8vw,140px)] leading-[.92] uppercase`}><span className={mask}><span data-head-line className={maskIn}>Selected work</span></span></h2>
+              <span className="eyebrow">[ {String(projects.length).padStart(2, "0")} ]</span>
+            </div>
+            <div className="group/list">
+              {projects.map((p, i) => (
+                <a key={p.id} href={p.href} target="_blank" rel="noopener noreferrer" data-row data-cursor
+                  onMouseEnter={() => showPreview(i)} onMouseLeave={() => showPreview(null)}
+                  className="group relative grid grid-cols-1 gap-3 border-t border-line py-[34px] transition-colors duration-300 last:border-b md:grid-cols-[60px_minmax(0,1fr)_minmax(0,1.1fr)_40px] md:items-center md:gap-5 group-hover/list:[&:not(:hover)]:text-muted">
+                  <span className="text-sm text-muted">{p.id}</span>
+                  <h3 className={`${display} text-[clamp(30px,4.6vw,76px)] leading-none transition-transform duration-500 ${ease} group-hover:translate-x-4`}>{p.title}</h3>
+                  <div className="text-sm leading-relaxed text-muted">
+                    {p.kind} — {p.desc}
+                    <div className="mt-3 flex flex-wrap gap-2">{p.tags.map((t) => <span key={t} className="rounded-md border border-line px-2.5 py-1 text-[11px] font-semibold tracking-wide text-fg uppercase">{t}</span>)}</div>
+                  </div>
+                  <span aria-hidden="true" className="hidden text-[28px] transition-transform duration-300 group-hover:-translate-y-1.5 group-hover:translate-x-1.5 md:block">↗</span>
+                </a>
+              ))}
+            </div>
+          </section>
+
+          {/* experience */}
+          <section id="experience" className={sectionPad}>
+            <div className="mb-10 flex items-end justify-between">
+              <h2 className={`${display} text-[clamp(40px,8vw,140px)] leading-[.92] uppercase`}><span className={mask}><span data-head-line className={maskIn}>Experience</span></span></h2>
+              <span className="eyebrow">[ {String(experience.length).padStart(2, "0")} ]</span>
+            </div>
+            {experience.map((e) => (
+              <div data-row key={e.company} className="grid gap-2.5 border-t border-line py-9 last:border-b md:grid-cols-[200px_1fr_1.2fr] md:items-baseline md:gap-6">
+                <span className="text-[13px] font-semibold tracking-wide text-muted uppercase">{e.period}</span>
+                <h3 className={`${display} text-[clamp(24px,3vw,44px)]`}>{e.role}<small className="mt-2 block text-[15px] font-medium tracking-normal text-muted">{e.company}</small></h3>
+                <p className="leading-relaxed text-muted">{e.text}</p>
+              </div>
             ))}
-          </div>
-        </section>
+          </section>
+
+          {/* contact */}
+          <section id="contact" className="flex min-h-svh flex-col justify-between px-(--pad) pt-[clamp(80px,12vw,160px)] pb-28">
+            <div className={cols}>
+              <div className="eyebrow" data-reveal>[ Contact ]</div>
+              <h2 className={`${display} text-[clamp(44px,9vw,164px)] leading-[.9] uppercase`}>
+                <span className={mask}><span data-head-line className={maskIn}>Let&apos;s work</span></span>
+                <span className={mask}><span data-head-line className={maskIn}>together</span></span>
+              </h2>
+            </div>
+            <div className={cols}>
+              <p data-reveal className="max-w-[240px] text-[15px] leading-snug text-muted">Have a project in mind? I&apos;d love to hear about it.</p>
+              <a data-reveal data-cursor href={`mailto:${profile.email}`} className={`${display} inline-block text-[clamp(20px,4vw,68px)] leading-none break-all transition-opacity duration-300 hover:opacity-60`}>{profile.email}</a>
+            </div>
+          </section>
+
+          <footer className="flex justify-between border-t border-line px-(--pad) py-6 pb-24 text-xs text-muted">
+            <span>© {new Date().getFullYear()} {profile.name}</span>
+            <span>Next.js · Tailwind · GSAP · Three.js</span>
+          </footer>
+        </div>
       </main>
 
-      <footer className="relative z-[2] flex justify-between border-t border-line bg-bg px-(--pad) py-6 font-mono text-xs text-muted">
-        <span>© {new Date().getFullYear()} {profile.name}</span>
-        <span>Built with Next.js · Tailwind · GSAP · Three.js</span>
-      </footer>
-
       <div ref={preview} aria-hidden="true"
-        className="pointer-events-none fixed top-0 left-0 z-40 hidden h-[230px] w-[340px] flex-col justify-between rounded-[14px] p-[22px] text-black opacity-0 will-change-transform [@media(hover:hover)]:flex"
-        style={{ background: `linear-gradient(135deg, ${projects[active].colors[0]}, ${projects[active].colors[1]})` }}>
-        <span className="font-mono text-xs tracking-[.14em] uppercase">{projects[active].kind}</span>
-        <b className="font-display text-4xl leading-none tracking-[-0.03em]">{projects[active].title}</b>
+        className="pointer-events-none fixed top-0 left-0 z-40 hidden w-[320px] opacity-0 will-change-transform [@media(hover:hover)]:block">
+        <Mock p={projects[active]} className="aspect-[4/3] w-full shadow-2xl shadow-black/40" />
       </div>
     </div>
   );
