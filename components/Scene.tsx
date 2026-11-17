@@ -6,17 +6,29 @@ import { sceneState } from "@/lib/state";
 // Floating code-editor windows (real MERN snippets drawn to canvas textures)
 // plus a few code glyphs. They tilt with the mouse and drift apart on scroll.
 
-type Tok = [string, string];
-const COL = {
-  t: "#d7d4cc", kw: "#ff5a36", fn: "#a99bff", str: "#8fcf9c",
-  num: "#e5c07b", cm: "#5b5b62", ok: "#8fcf9c",
+const PALS = {
+  dark: { card: "#101013", bar: "#16161a", barLine: "rgba(242,240,234,0.1)", border: "rgba(242,240,234,0.16)", dot: "#3a3a40",
+    t: "#d7d4cc", kw: "#ff5a36", fn: "#a99bff", str: "#8fcf9c", num: "#e5c07b", cm: "#5b5b62", ok: "#8fcf9c" },
+  light: { card: "#f8f6ef", bar: "#eeebe2", barLine: "rgba(18,18,18,0.1)", border: "rgba(18,18,18,0.2)", dot: "#cfcabd",
+    t: "#24221f", kw: "#c2331a", fn: "#4b3fd1", str: "#2f7d45", num: "#9a6a00", cm: "#9b978d", ok: "#2f7d45" },
 };
-const k = (s: string): Tok => [s, COL.kw];
-const f = (s: string): Tok => [s, COL.fn];
-const s = (x: string): Tok => [x, COL.str];
-const t = (x: string): Tok => [x, COL.t];
-const n = (x: string): Tok => [x, COL.num];
-const c = (x: string): Tok => [x, COL.cm];
+let COL: typeof PALS.dark = PALS.dark;
+type Key = "t" | "kw" | "fn" | "str" | "num" | "cm" | "ok";
+type Tok = [string, Key];
+const k = (s: string): Tok => [s, "kw"];
+const f = (s: string): Tok => [s, "fn"];
+const s = (x: string): Tok => [x, "str"];
+const t = (x: string): Tok => [x, "t"];
+const n = (x: string): Tok => [x, "num"];
+const c = (x: string): Tok => [x, "cm"];
+
+const isDarkBg = () => {
+  const v = getComputedStyle(document.documentElement).getPropertyValue("--c-bg").trim().replace("#", "");
+  if (v.length < 6) return true;
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(v.slice(i, i + 2), 16));
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 < 0.45;
+};
+const setPalette = () => { COL = isDarkBg() ? PALS.dark : PALS.light; };
 
 const serverCode: Tok[][] = [
   [k("import "), t("express "), k("from "), s('"express"'), t(";")],
@@ -46,12 +58,12 @@ const appCode: Tok[][] = [
   [t("}")],
 ];
 const termCode: Tok[][] = [
-  [[ "$ ", COL.kw ], t("npm run dev")],
+  [["$ ", "kw"], t("npm run dev")],
   [],
   [c("> next dev")],
-  [[ "✓ ", COL.ok ], t("MongoDB connected")],
-  [[ "✓ ", COL.ok ], t("Ready on "), s("localhost:3000")],
-  [[ "✓ ", COL.ok ], t("Compiled in "), n("312ms")],
+  [["✓ ", "ok"], t("MongoDB connected")],
+  [["✓ ", "ok"], t("Ready on "), s("localhost:3000")],
+  [["✓ ", "ok"], t("Compiled in "), n("312ms")],
 ];
 
 function rr(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
@@ -71,12 +83,12 @@ function windowTexture(title: string, lines: Tok[][], fam: string, numbers: bool
   cv.width = W; cv.height = H;
   const x = cv.getContext("2d")!;
   rr(x, 2, 2, W - 4, H - 4, 26);
-  x.fillStyle = "#101013"; x.fill();
-  x.lineWidth = 2; x.strokeStyle = "rgba(242,240,234,0.16)"; x.stroke();
+  x.fillStyle = COL.card; x.fill();
+  x.lineWidth = 2; x.strokeStyle = COL.border; x.stroke();
   x.save(); rr(x, 2, 2, W - 4, H - 4, 26); x.clip();
-  x.fillStyle = "#16161a"; x.fillRect(0, 0, W, BAR);
-  x.fillStyle = "rgba(242,240,234,0.1)"; x.fillRect(0, BAR, W, 2);
-  ["#ff5a36", "#3a3a40", "#3a3a40"].forEach((col, i) => { x.beginPath(); x.arc(44 + i * 34, BAR / 2, 9, 0, 7); x.fillStyle = col; x.fill(); });
+  x.fillStyle = COL.bar; x.fillRect(0, 0, W, BAR);
+  x.fillStyle = COL.barLine; x.fillRect(0, BAR, W, 2);
+  ["#ff5a36", COL.dot, COL.dot].forEach((col, i) => { x.beginPath(); x.arc(44 + i * 34, BAR / 2, 9, 0, 7); x.fillStyle = col; x.fill(); });
   x.font = `400 24px ${fam}`; x.fillStyle = COL.cm; x.textBaseline = "middle"; x.textAlign = "center";
   x.fillText(title, W / 2, BAR / 2 + 1);
   x.textAlign = "left";
@@ -85,7 +97,7 @@ function windowTexture(title: string, lines: Tok[][], fam: string, numbers: bool
     const y = BAR + PAD + i * LH + LH / 2;
     let px = PAD;
     if (numbers) { x.fillStyle = COL.cm; x.fillText(String(i + 1).padStart(2, " "), px, y); px += 70; }
-    ln.forEach(([txt, col]) => { x.fillStyle = col; x.fillText(txt, px, y); px += x.measureText(txt).width; });
+    ln.forEach(([txt, col]) => { x.fillStyle = COL[col]; x.fillText(txt, px, y); px += x.measureText(txt).width; });
   });
   x.restore();
   const tex = new THREE.CanvasTexture(cv);
@@ -124,12 +136,15 @@ export default function Scene() {
     const group = new THREE.Group();
     scene.add(group);
 
-    type Item = { mesh: THREE.Mesh; base: THREE.Vector3; spread: THREE.Vector3; rot: THREE.Euler; glyph: boolean; phase: number };
+    type Spec = { title: string; lines: Tok[][]; numbers: boolean; W?: number };
+    type Item = { spec?: Spec; text?: string; mesh: THREE.Mesh; base: THREE.Vector3; spread: THREE.Vector3; rot: THREE.Euler; glyph: boolean; phase: number };
+    let fontFam = "monospace";
+    const themeCols = () => { const cs = getComputedStyle(document.documentElement); const g = (v: string) => cs.getPropertyValue(v).trim() || "#888"; return [g("--c-accent"), g("--c-fg"), g("--c-accent"), g("--c-muted"), g("--c-fg")]; };
     const items: Item[] = [];
     const disposables: { dispose(): void }[] = [];
     let disposed = false;
 
-    const add = (tex: THREE.Texture, aspect: number, width: number, pos: [number, number, number], spread: [number, number, number], rot: [number, number, number], opacity: number, glyph = false) => {
+    const add = (tex: THREE.Texture, aspect: number, width: number, pos: [number, number, number], spread: [number, number, number], rot: [number, number, number], opacity: number, glyph = false, text?: string, spec?: Spec) => {
       const geo = new THREE.PlaneGeometry(width, width / aspect);
       const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity, depthWrite: false, toneMapped: false });
       const mesh = new THREE.Mesh(geo, mat);
@@ -137,7 +152,7 @@ export default function Scene() {
       mesh.rotation.set(...rot);
       group.add(mesh);
       disposables.push(geo, mat, tex);
-      items.push({ mesh, base: new THREE.Vector3(...pos), spread: new THREE.Vector3(...spread), rot: new THREE.Euler(...rot), glyph, phase: Math.random() * 6 });
+      items.push({ spec, text, mesh, base: new THREE.Vector3(...pos), spread: new THREE.Vector3(...spread), rot: new THREE.Euler(...rot), glyph, phase: Math.random() * 6 });
     };
 
     const build = async () => {
@@ -145,12 +160,15 @@ export default function Scene() {
       fam = fam ? `${fam}, monospace` : "ui-monospace, Menlo, Consolas, monospace";
       try { await document.fonts.load(`400 32px ${fam}`); await document.fonts.load(`500 170px ${fam}`); } catch {}
       if (disposed) return;
-      const a = windowTexture("server.js", serverCode, fam, true);
-      const b = windowTexture("App.jsx", appCode, fam, true);
-      const d = windowTexture("zsh — portfolio", termCode, fam, false, 1100);
-      add(b.tex, b.aspect, 3.5, [-1.7, 1.55, -1.6], [-2.4, 1.6, 0], [0.05, 0.22, 0.03], 0.55);
-      add(a.tex, a.aspect, 4.5, [0.1, 0.05, 0], [0, 0, 0], [-0.04, -0.2, 0.02], 0.96);
-      add(d.tex, d.aspect, 3.2, [1.45, -1.85, 0.9], [2.4, -1.8, 0], [0.04, -0.3, -0.03], 0.96);
+      fontFam = fam;
+      setPalette();
+      const sa: Spec = { title: "server.js", lines: serverCode, numbers: true }, sb: Spec = { title: "App.jsx", lines: appCode, numbers: true }, sd: Spec = { title: "zsh — portfolio", lines: termCode, numbers: false, W: 1100 };
+      const a = windowTexture(sa.title, sa.lines, fam, true);
+      const b = windowTexture(sb.title, sb.lines, fam, true);
+      const d = windowTexture(sd.title, sd.lines, fam, false, 1100);
+      add(b.tex, b.aspect, 3.5, [-1.7, 1.55, -1.6], [-2.4, 1.6, 0], [0.05, 0.22, 0.03], 0.55, false, undefined, sb);
+      add(a.tex, a.aspect, 4.5, [0.1, 0.05, 0], [0, 0, 0], [-0.04, -0.2, 0.02], 0.96, false, undefined, sa);
+      add(d.tex, d.aspect, 3.2, [1.45, -1.85, 0.9], [2.4, -1.8, 0], [0.04, -0.3, -0.03], 0.96, false, undefined, sd);
       const glyphs: [string, string, [number, number, number], [number, number, number]][] = [
         ["{ }", COL.kw, [-2.9, -1.0, -0.3], [-2.4, -1.4, 0]],
         ["</>", COL.fn, [2.7, 2.0, -1.1], [2.6, 1.8, 0]],
@@ -158,9 +176,25 @@ export default function Scene() {
         ["[ ]", COL.str, [-0.9, -2.5, -0.6], [-1, -2, 0]],
         ["&&", COL.kw, [-3.2, 0.9, -2.2], [-2.8, 0.8, 0]],
       ];
-      glyphs.forEach(([g, col, pos, sp]) => add(glyphTexture(g, fam, col), 2, 0.9, pos, sp, [0, 0, 0], 0.7, true));
+      const gc = themeCols();
+      glyphs.forEach(([g, , pos, sp], i) => add(glyphTexture(g, fam, gc[i]), 2, 0.9, pos, sp, [0, 0, 0], 0.85, true, g));
     };
     build();
+
+    const onTheme = () => {
+      setPalette();
+      const gc = themeCols();
+      let gi = 0;
+      items.forEach((it) => {
+        const mat = it.mesh.material as THREE.MeshBasicMaterial;
+        if (it.spec) { mat.map?.dispose(); mat.map = windowTexture(it.spec.title, it.spec.lines, fontFam, it.spec.numbers, it.spec.W).tex; mat.needsUpdate = true; return; }
+        if (!it.glyph || !it.text) return;
+        mat.map?.dispose();
+        mat.map = glyphTexture(it.text, fontFam, gc[gi++ % gc.length]);
+        mat.needsUpdate = true;
+      });
+    };
+    window.addEventListener("themechange", onTheme);
 
     const resize = () => {
       const w = window.innerWidth, h = window.innerHeight;
@@ -208,7 +242,7 @@ export default function Scene() {
         );
         it.mesh.rotation.set(it.rot.x + Math.sin(tm * 0.4 + i) * 0.02, it.rot.y + Math.cos(tm * 0.35 + i) * 0.03, it.rot.z + (it.glyph ? Math.sin(tm * 0.5 + i) * 0.12 : 0));
       });
-      canvas.style.opacity = String(Math.max(0.22, 1 - p * 3.5) * Math.min(1, intro * 1.5));
+      canvas.style.opacity = String(Math.max(0.13, 1 - p * 3.5) * Math.min(1, intro * 1.5));
       renderer.render(scene, camera);
     };
     loop();
@@ -218,6 +252,7 @@ export default function Scene() {
       cancelAnimationFrame(raf);
       visible = false;
       window.removeEventListener("resize", resize);
+      window.removeEventListener("themechange", onTheme);
       window.removeEventListener("pointermove", onMove);
       document.removeEventListener("visibilitychange", onVis);
       disposables.forEach((d) => d.dispose());

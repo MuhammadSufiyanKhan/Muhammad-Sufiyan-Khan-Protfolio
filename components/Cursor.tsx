@@ -22,7 +22,7 @@ export default function Cursor() {
       ref={el}
       aria-hidden="true"
       data-big="false"
-      className="pointer-events-none fixed top-0 left-0 z-90 -mt-[7px] -ml-[7px] size-3.5 rounded-full bg-fg mix-blend-difference transition-[width,height,margin] duration-300 data-[big=true]:-mt-[42px] data-[big=true]:-ml-[42px] data-[big=true]:size-[84px] [@media(hover:none)]:hidden"
+      className="pointer-events-none fixed top-0 left-0 z-90 -mt-[7px] -ml-[7px] size-3.5 rounded-full bg-accent opacity-90 transition-[width,height,margin] duration-300 data-[big=true]:-mt-8 data-[big=true]:-ml-8 data-[big=true]:size-16 [@media(hover:none)]:hidden"
     />
   );
 }

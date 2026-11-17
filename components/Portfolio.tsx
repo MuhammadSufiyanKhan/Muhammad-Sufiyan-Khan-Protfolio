@@ -20,12 +20,27 @@ const maskInner = "inline-block will-change-transform";
 const h2 = "font-display font-extrabold uppercase leading-[.92] tracking-[-0.03em] text-[clamp(32px,9vw,140px)]";
 const chip = "rounded-full border border-line bg-bg/50 px-3.5 py-2 font-mono text-xs backdrop-blur-sm";
 const ease = "ease-[cubic-bezier(.7,0,.2,1)]";
+const themes = [
+  { id: "paper", label: "Paper", bg: "#ece8df", ac: "#2f3bff" },
+  { id: "ink", label: "Ink", bg: "#0b0b0c", ac: "#c8ff3d" },
+  { id: "clay", label: "Clay", bg: "#e8502a", ac: "#f6ecd2" },
+] as const;
 
 export default function Portfolio() {
   const root = useRef<HTMLDivElement>(null);
   const preview = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
   const [count, setCount] = useState(0);
+  const [theme, setTheme] = useState<string>("paper");
+
+  useEffect(() => {
+    try { const t = localStorage.getItem("theme"); if (t && themes.some((x) => x.id === t)) setTheme(t); } catch {}
+  }, []);
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    try { localStorage.setItem("theme", theme); } catch {}
+    window.dispatchEvent(new Event("themechange"));
+  }, [theme]);
 
   useIso(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -125,7 +140,7 @@ export default function Portfolio() {
         <div data-bar className="absolute bottom-0 left-0 h-[3px] w-full origin-left bg-accent" />
       </div>
 
-      <header data-nav className="fixed inset-x-0 top-0 z-60 flex items-center justify-between px-(--pad) py-[22px] mix-blend-difference">
+      <header data-nav className="fixed inset-x-0 top-0 z-60 flex items-center justify-between bg-linear-to-b from-bg via-bg/85 to-transparent px-(--pad) pt-[22px] pb-8">
         <a href="#top" data-cursor className="font-display text-lg font-extrabold">MSK.</a>
         <ul className="flex gap-3 text-xs sm:gap-7 sm:text-sm">
           {[["About", "#about"], ["Work", "#work"], ["Experience", "#experience"], ["Contact", "#contact"]].map(([l, h]) => (
@@ -136,6 +151,14 @@ export default function Portfolio() {
         </ul>
         <span className="hidden text-[13px] sm:inline">{profile.location}</span>
       </header>
+
+      <div className="fixed bottom-4 left-(--pad) z-60 flex items-center gap-2 rounded-full border border-line bg-bg/70 px-2.5 py-2 backdrop-blur-md" role="group" aria-label="Colour scheme">
+        {themes.map((t) => (
+          <button key={t.id} type="button" onClick={() => setTheme(t.id)} aria-label={`${t.label} colour scheme`} aria-pressed={theme === t.id} title={t.label} data-cursor
+            className={`size-5 cursor-pointer rounded-full border border-line transition-transform duration-300 hover:scale-110 ${theme === t.id ? "ring-2 ring-fg ring-offset-2 ring-offset-bg" : ""}`}
+            style={{ background: `linear-gradient(135deg, ${t.bg} 50%, ${t.ac} 50%)` }} />
+        ))}
+      </div>
 
       <main id="top" className="relative z-[2]">
         <section data-hero className="flex min-h-svh flex-col justify-end px-(--pad) pt-32 pb-[clamp(40px,6vw,80px)]">
