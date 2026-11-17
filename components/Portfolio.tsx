@@ -27,7 +27,7 @@ const cols = "grid gap-8 md:grid-cols-[1fr_2.6fr]";
 
 function Stat({ children }: { children: React.ReactNode }) {
   return (
-    <span className="relative mx-[.1em] inline-block h-[clamp(30px,7.4vw,136px)] w-[clamp(34px,8.6vw,158px)] rounded-lg border border-line bg-linear-to-b from-fg/10 to-transparent p-[10px] align-middle text-[11px] leading-tight font-bold tracking-normal whitespace-normal text-fg/90 sm:text-xs">
+    <span className="relative mx-[.1em] inline-block h-[clamp(26px,6vw,112px)] w-[clamp(30px,7vw,130px)] rounded-lg border border-line bg-linear-to-b from-fg/10 to-transparent p-[10px] align-middle text-[11px] leading-tight font-bold tracking-normal whitespace-normal text-fg/90 sm:text-xs">
       {children}
     </span>
   );
@@ -206,20 +206,21 @@ export default function Portfolio() {
           <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_45%,transparent_25%,var(--c-bg)_100%)]" />
           <div data-hero-inner className="relative will-change-transform">
             <h1 className="sr-only">{profile.name} — Full-Stack &amp; MERN Web Developer</h1>
-            <div aria-hidden="true" className={`${display} text-[clamp(38px,9.4vw,172px)] leading-[.92] uppercase`}>
+            <div data-fade className="eyebrow mb-5 text-fg/80">Full-Stack · MERN · Web Developer</div>
+            <div aria-hidden="true" className={`${display} text-[clamp(30px,7.6vw,140px)] leading-[.92] uppercase`}>
               <span className={mask}>
-                <span data-hero-line className={maskIn}>Full-Stack<Stat>{experience.length}<span className="hidden sm:inline"> roles shipped</span></Stat>&amp;</span>
+                <span data-hero-line className={maskIn}>Muhammad<Stat>{experience.length}<span className="hidden sm:inline"> roles shipped</span></Stat></span>
               </span>
               <span className={mask}>
                 <span data-hero-line className="flex items-end justify-between gap-6">
-                  <span data-fade className="mb-[.3em] hidden max-w-[270px] text-[clamp(14px,1.15vw,18px)] leading-snug font-medium tracking-normal normal-case text-fg/90 md:block">
+                  <span data-fade className="mb-[.3em] hidden max-w-[240px] text-[clamp(14px,1.15vw,18px)] leading-snug font-medium tracking-normal normal-case text-fg/90 md:block">
                     Hey, I&apos;m {profile.short}. I build full-stack web apps that are fast, scalable and a pleasure to use.
                   </span>
-                  <span className="ml-auto">MERN Web</span>
+                  <span className="ml-auto">Sufiyan Khan</span>
                 </span>
               </span>
               <span className={mask}>
-                <span data-hero-line className={maskIn}>Developer<Stat>{projects.length}<span className="hidden sm:inline"> live projects</span></Stat><Arrow /></span>
+                <span data-hero-line className={maskIn}>Web Developer<Stat>{projects.length}<span className="hidden sm:inline"> live projects</span></Stat><span className="hidden sm:inline"><Arrow /></span></span>
               </span>
             </div>
             <p data-fade className="mt-6 max-w-[320px] text-[15px] leading-snug font-medium text-fg/90 md:hidden">
