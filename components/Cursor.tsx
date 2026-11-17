@@ -11,11 +11,18 @@ export default function Cursor() {
     const yTo = gsap.quickTo(node, "y", { duration: 0.35, ease: "power3" });
     const move = (e: PointerEvent) => { xTo(e.clientX); yTo(e.clientY); };
     const over = (e: PointerEvent) => {
-      node.classList.toggle("big", !!(e.target as HTMLElement).closest("[data-cursor]"));
+      node.dataset.big = String(!!(e.target as HTMLElement).closest("[data-cursor]"));
     };
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerover", over);
     return () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerover", over); };
   }, []);
-  return <div className="cursor" ref={el} aria-hidden="true" />;
+  return (
+    <div
+      ref={el}
+      aria-hidden="true"
+      data-big="false"
+      className="pointer-events-none fixed top-0 left-0 z-90 -mt-[7px] -ml-[7px] size-3.5 rounded-full bg-fg mix-blend-difference transition-[width,height,margin] duration-300 data-[big=true]:-mt-[42px] data-[big=true]:-ml-[42px] data-[big=true]:size-[84px] [@media(hover:none)]:hidden"
+    />
+  );
 }
